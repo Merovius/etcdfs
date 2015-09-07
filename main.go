@@ -6,11 +6,15 @@
 // subdirectory of etcd.
 //
 // Usage:
-//		etcdfs [<subdir>] <mountpoint>
+// 	etcdfs [flags…] [<subdir>] <mountpoint>
 //
 // Flags:
-//		-debug
-//			Enable debugging output.
+//   -allow_other
+//     	Allow other users to access this filesystem
+//   -allow_root
+//     	Allow root to access this filesystem
+//   -debug
+//     	Enable debugging
 package main
 
 import (
@@ -30,12 +34,15 @@ import (
 )
 
 var (
-	debug = flag.Bool("debug", false, "Enable debugging")
+	debug      = flag.Bool("debug", false, "Enable debugging")
+	allowOther = flag.Bool("allow_other", false, "Allow other users to access this filesystem")
+	allowRoot  = flag.Bool("allow_root", false, "Allow root to access this filesystem")
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "Usage of %s:\n", os.Args[0])
-	fmt.Fprintf(os.Stderr, "    %s [<subdir>] <mountpoint>\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Usage:\n")
+	fmt.Fprintf(os.Stderr, "\t%s [flags…] [<subdir>] <mountpoint>\n\n", os.Args[0])
+	fmt.Fprintf(os.Stderr, "Flags:\n")
 	flag.PrintDefaults()
 }
 
@@ -83,13 +90,23 @@ func run() error {
 		return err
 	}
 
+	var mountOpts []fuse.MountOption
+
+	if *allowOther {
+		mountOpts = append(mountOpts, fuse.AllowOther())
+	}
+	if *allowRoot {
+		mountOpts = append(mountOpts, fuse.AllowRoot())
+	}
+	mountOpts = append(mountOpts, fuse.DefaultPermissions())
+	mountOpts = append(mountOpts, fuse.FSName("etcd:"+subdir))
+	mountOpts = append(mountOpts, fuse.ReadOnly())
+	mountOpts = append(mountOpts, fuse.Subtype("etcdFS"))
+
 	log.Printf("Mounting etcd:%s to %s", subdir, mountpoint)
 	c, err := fuse.Mount(
 		mountpoint,
-		fuse.DefaultPermissions(),
-		fuse.FSName("etcd:"+subdir),
-		fuse.ReadOnly(),
-		fuse.Subtype("etcdFS"),
+		mountOpts...,
 	)
 	if err != nil {
 		return err

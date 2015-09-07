@@ -23,7 +23,16 @@ merovius.de/etcdfs`.
 Command line usage is
 
 ```
-etcdfs [-debug] [<subdir>] <mountpoint>
+Usage:
+	./etcdfs [flags…] [<subdir>] <mountpoint>
+
+Flags:
+  -allow_other
+    	Allow other users to access this filesystem
+  -allow_root
+    	Allow root to access this filesystem
+  -debug
+    	Enable debugging
 ```
 
 so, e.g. `etcdfs /etcd`. If `<subdir>` is given, it names the subdirectory of
