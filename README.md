@@ -1,3 +1,5 @@
+# Unmaintained and incomplete - do not use!
+
 # etcdfs - Read-only FUSE filesystem to access etcd
 
 etcdfs lets you mount a subdirectory of an etcd cluster via FUSE. It only
